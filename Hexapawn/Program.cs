@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Hexapawn.Assets;
+using Hexapawn.Modes;
 
 namespace Hexapawn
 {
@@ -7,7 +9,25 @@ namespace Hexapawn
     {
         static void Main(string[] args)
         {
-            Display.MainMenu();
+            MainMenu();
+        }
+        public static void MainMenu()
+        {
+            bool repeat = true;
+            List<string> menu = new List<string>() { "Classic", "aaaah" };
+            while (repeat)
+            {
+                int menuSelection = Display.Menu(menu, "Main Menu");
+
+                if (menuSelection == 0)
+                {
+                    State state = new State();
+                    IMode mode = new Classic(state);
+                    mode.Run();
+                }
+                else if (menuSelection == 1)
+                    Console.WriteLine("2");
+            }
         }
     }
 }

@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Hexapawn.Assets;
+using Hexapawn.Modes;
 
 namespace Hexapawn
 {
     public class Display
     {
-        public static void MainMenu()
+        public static void Board(State state)
         {
-            bool repeat = true;
-            List<string> menu = new List<string>() { "Classic", "aaaah" };
-            while (repeat)
-            {
-                int menuSelection = Menu(menu, "Main Menu");
+            Console.Clear();
+            Heading();
+            string color = ConsoleColor.White.ToString();
+            if (state.Turn % 2 == 0)
+                color = ConsoleColor.Black.ToString();
+            Console.WriteLine($"Turn: {color}\n");
 
-                if (menuSelection == 0)
-                    Console.WriteLine("1");
-                else if (menuSelection == 1)
-                    Console.WriteLine("2");
+            string line;
+            for (int row = state.Board.Size - 1; row >= 0; row--)
+            {
+                line = "| ";
+                for (int col = 0; col < state.Board.Size; col++)
+                    line += state.Board.Content[col, row] + " | ";
+                Console.WriteLine(line);
             }
         }
         public static int Menu(List<string> options, string subheading = "", string extra = "")

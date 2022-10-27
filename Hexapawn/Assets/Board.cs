@@ -6,6 +6,7 @@ namespace Hexapawn.Assets
 {
     public class Board
     {
+        public string[,] Content { get; set; }
         public int Size { get; set; }
         public Board()
         {
