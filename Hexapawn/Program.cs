@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Hexapawn
 {
@@ -6,7 +7,7 @@ namespace Hexapawn
     {
         static void Main(string[] args)
         {
-            
+            Display.MainMenu();
         }
     }
 }
