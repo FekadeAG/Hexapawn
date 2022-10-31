@@ -21,7 +21,7 @@ namespace Hexapawn
 
                 if (menuSelection == 0)
                 {
-                    State state = new State();
+                    GameState state = GameState.GetInstance();
                     IMode mode = new Classic(state);
                     mode.Run();
                 }

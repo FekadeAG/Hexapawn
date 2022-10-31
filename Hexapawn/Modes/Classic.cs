@@ -8,17 +8,23 @@ namespace Hexapawn.Modes
 {
     public class Classic : IMode
     {
-        private State state { get; set; }
-        public Classic(State state)
+        private GameState state { get; set; }
+        public Classic(GameState state)
         {
             this.state = state;
         }
         public void Run()
         {
+            state.Board = new Board();
+           
+            state.Player1 = new Player();
+            state.Player1.Brain = new User(state.Player1);
+            state.Player2 = new Player(ConsoleColor.Black.ToString());
+            state.Player2.Brain = new Assets.Brains.Classic(state.Player2);
+
+            state.SetBoard();
             state.End = false;
             state.Turn = 1;
-            state.Player1 = new Player(new User());
-            state.Player2 = new Player(new Assets.Brains.Classic(), ConsoleColor.Black);
             while (!state.End)
             {
                 if (state.Turn % 2 != 0)
@@ -26,7 +32,7 @@ namespace Hexapawn.Modes
                 else
                     state.Player2.Run();
 
-                Display.Board(state);
+                Display.Board();
             }
 
             Console.WriteLine("\nPress 'Enter' to go back to the main menu");

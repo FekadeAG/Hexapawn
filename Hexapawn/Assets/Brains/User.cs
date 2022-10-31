@@ -1,158 +1,159 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Hexapawn.Assets.Pieces;
 
 namespace Hexapawn.Assets.Brains
 {
     public class User : IBrain
     {
+        private GameState gameState { get; set; }
+        private Player player { get; set; }
+
+        public User(Player player)
+        {
+            gameState = GameState.GetInstance();
+            this.player = player;
+        }
+
         public void Run()
         {
-            string piece = "", type = "";
-            char lr = ' ';
+            string piece = "", move = "";
             int pieceX = 0, pieceY = 0;
-            bool inputApproved = false;
 
-            ////determines whether a piece moves up or down on the y co-ordinate in  the calculations
-            //int updown;
-            //if (GV.PVC == 1)
-            //    updown = 1;
-            //else if (player == "WHITE")
-            //    updown = 1;
-            //else
-            //    updown = -1;
+            Display.Board();
 
+            bool inputValid = false, inputExist = false, inputApproved = false;
             while (!inputApproved)
             {
                 // Select piece
-                while (!inputApproved)
+                while (!inputValid)
                 {
-                    Console.Write("\nSelect a piece: ");
-                    piece = Console.ReadLine().ToUpper();
-                    if ((piece.Length > 0) && (piece[0] == player[0]))
-                        inputApproved = true;
-                    else
-                        Console.WriteLine("\nINVALID INPUT: Please select your pawn.");
+                    Console.Write($"\nSelect a piece i.e. '{player.Color[0]}1': ");
+                    string input = Console.ReadLine().ToUpper();
+                    try
+                    {
+                        //is first character of input the correct color
+                        bool isCorrectColor = false;
+                        if (input[0] == player.Color[0])
+                        {
+                            isCorrectColor = true;
+                            piece = input;
+                        }
+
+                        //are following charcters a number
+                        bool hasPieceNumber = int.TryParse(input.Substring(1), out int n);
+
+                        if (!isCorrectColor && !hasPieceNumber)
+                            Console.WriteLine($"INVALID INPUT: Please select the correct color ('{player.Color[0]}') and a valid piece number");
+                        else if (!isCorrectColor)
+                            Console.WriteLine($"INVALID INPUT: Please select the correct color ('{player.Color[0]}')");
+                        else if (!hasPieceNumber)
+                            Console.WriteLine("INVALID INPUT: Please select a valid piece number");
+                        else
+                            inputValid = true;
+                    }
+                    catch (IndexOutOfRangeException) { }
                 }
-                inputApproved = false;
 
                 //Checking if piece exsists
-                for (int row = 0; row < GV.boardSize; row++)
+                if (inputValid)
                 {
-                    for (int col = 1; col <= GV.boardSize; col++)
+                    GameState state = GameState.GetInstance();
+                    for (int row = 0; row < state.Board.Size; row++)
                     {
-                        if (GV.board[col, row] == piece)
+                        for (int col = 0; col < state.Board.Size; col++)
                         {
-                            inputApproved = true;
-                            //Get position on board
-                            pieceX = col;
-                            pieceY = row;
+                            if (state.Board.Content[col, row].ToString() == piece)
+                            {
+                                inputExist = true;
+                                pieceX = col;
+                                pieceY = row;
+                                break;
+                            }
                         }
-                        if (inputApproved)
+                        if (inputExist)
                             break;
                     }
-                    if (inputApproved)
-                        break;
+                    if (!inputExist)
+                        Console.WriteLine("\nINVALID INPUT: Pawn selected is not on the board.");
                 }
-                if (inputApproved == false)
-                    Console.WriteLine("\nINVALID INPUT: Pawn selected does not exist.");
+
+                if (inputValid && inputExist)
+                    inputApproved = true;
             }
-            inputApproved = false;
 
-            while (inputApproved == false)
+            bool moveCompleted = false;
+            while (!moveCompleted)
             {
+                int updown = 1;
+                if (player.Color == ConsoleColor.Black.ToString())
+                    updown = -1;
+
                 Console.Write("'Push' or 'Capture': ");
-                type = Console.ReadLine().ToLower();
-
-                if ((type != "push") && (type != "capture"))
+                move = Console.ReadLine().ToLower();
+                if ((move != "push") && (move != "capture"))
                     Console.WriteLine("\nINVALID INPUT: Please select 'Push' or 'Capture'.");
-
-                if (type == "push")
+                else if (move == "push")
                 {
-                    if (GV.board[pieceX, pieceY + updown] == "--")
+                    if (gameState.Board.Content[pieceX, pieceY + updown].Type == PieceType.NullPiece)
                     {
-                        inputApproved = true;
-                        GV.board[pieceX, pieceY + updown] = GV.board[pieceX, pieceY];
-                        GV.board[pieceX, pieceY] = "--";
+                        gameState.Board.Content[pieceX, pieceY + updown] = gameState.Board.Content[pieceX, pieceY];
+                        gameState.Board.Content[pieceX, pieceY] = new NullPiece();
+                        moveCompleted = true;
                     }
                     else
                         Console.WriteLine("\nINVALID MOVE: A pawn is in that position.");
                 }
-                else if (type == "capture")
+                else if (move == "capture")
                 {
-                    string pieceToTheLeft, pieceToTheRight;
-                    pieceToTheLeft = GV.board[pieceX - 1, pieceY + updown];
-                    pieceToTheRight = GV.board[pieceX + 1, pieceY + updown];
-
-
-                    if ((pieceToTheLeft[0] == opposition[0]) && (pieceToTheRight[0] == opposition[0]))
+                    bool pieceToTheLeft = false;
+                    bool pieceToTheRight = false;
+                    try
                     {
-                        string LR = "";
-                        inputApproved = false;
-                        while (inputApproved == false)
-                        {
-                            Console.Write("Capture left or right: ");
-                            LR = Console.ReadLine().ToLower();
-                            if ((LR == "left") || (LR == "right"))
-                                inputApproved = true;
-                            else
-                                Console.WriteLine("\nINVALID INPUT: Please select left or right.");
-                        }
-                        if (LR == "left")
-                        {
-                            GV.board[pieceX - 1, pieceY + updown] = GV.board[pieceX, pieceY];
-                            GV.board[pieceX, pieceY] = "--";
-                        }
-                        if (LR == "right")
-                        {
-                            GV.board[pieceX + 1, pieceY + updown] = GV.board[pieceX, pieceY];
-                            GV.board[pieceX, pieceY] = "--";
-                        }
-                        lr = LR.ToUpper()[0];
-
-                        if (opposition == "WHITE")
-                            GV.whitePiecesOnBoard--;
-                        else if (opposition == "BLACK")
-                            GV.blackPiecesOnBoard--;
+                        Piece hold = gameState.Board.Content[pieceX - 1, pieceY + updown];
+                        if (hold.Type != PieceType.NullPiece && !player.MyPawns.Contains(hold))
+                            pieceToTheLeft = true;
                     }
-                    else if (pieceToTheLeft[0] == opposition[0])
+                    catch(IndexOutOfRangeException) { }
+                    try
                     {
-                        inputApproved = true;
-                        GV.board[pieceX - 1, pieceY + updown] = GV.board[pieceX, pieceY];
-                        GV.board[pieceX, pieceY] = "--";
-
-                        if (opposition == "WHITE")
-                            GV.whitePiecesOnBoard--;
-                        else if (opposition == "BLACK")
-                            GV.blackPiecesOnBoard--;
+                        Piece hold = gameState.Board.Content[pieceX + 1, pieceY + updown];
+                        if (hold.Type != PieceType.NullPiece && !player.MyPawns.Contains(hold))
+                            pieceToTheRight = true;
                     }
-                    else if (pieceToTheRight[0] == opposition[0])
-                    {
-                        inputApproved = true;
-                        GV.board[pieceX + 1, pieceY + updown] = GV.board[pieceX, pieceY];
-                        GV.board[pieceX, pieceY] = "--";
+                    catch (IndexOutOfRangeException) { }
 
-                        if (opposition == "WHITE")
-                            GV.whitePiecesOnBoard--;
-                        else if (opposition == "BLACK")
-                            GV.blackPiecesOnBoard--;
+                    if (pieceToTheLeft || pieceToTheRight)
+                    {
+                        int x = -1; //left
+                        if (pieceToTheLeft && pieceToTheRight)
+                        {
+                            string captureLR = "";
+                            inputApproved = false;
+                            while (inputApproved == false)
+                            {
+                                Console.Write("Capture left or right: ");
+                                captureLR = Console.ReadLine().ToLower();
+                                if ((captureLR == "left") || (captureLR == "right"))
+                                    inputApproved = true;
+                                else
+                                    Console.WriteLine("\nINVALID INPUT: Please select left or right.");
+                            }
+                            if (captureLR == "right")
+                                x = 1;
+                        }
+                        else if (pieceToTheRight)
+                            x = 1;
+                        gameState.Board.Content[pieceX + x, pieceY + updown].IsCaptured = true;
+                        gameState.Board.Content[pieceX + x, pieceY + updown] = gameState.Board.Content[pieceX, pieceY];
+                        gameState.Board.Content[pieceX, pieceY] = new NullPiece();
+                        moveCompleted = true;
                     }
                     else
-                        Console.WriteLine("\nINVALID MOVE: No pawn to capture.");
+                        Console.WriteLine("\nINVALID MOVE: No pawns to capture.");
                 }
-
-                //CHEATS
-                if (type == "stale")
-                {
-                    inputApproved = true;
-                    CheatStalemate();
-                }
-
-
             }
-            Experienced.AddMove(piece, type, lr);
-            if (player == "WHITE") Experienced.whiteMoveNum++;
-            else if (player == "BLACK") Experienced.blackMoveNum++;
         }
     }
 }

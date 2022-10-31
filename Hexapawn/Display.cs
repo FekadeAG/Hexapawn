@@ -8,8 +8,9 @@ namespace Hexapawn
 {
     public class Display
     {
-        public static void Board(State state)
+        public static void Board()
         {
+            GameState state = GameState.GetInstance();
             Console.Clear();
             Heading();
             string color = ConsoleColor.White.ToString();
@@ -22,7 +23,7 @@ namespace Hexapawn
             {
                 line = "| ";
                 for (int col = 0; col < state.Board.Size; col++)
-                    line += state.Board.Content[col, row] + " | ";
+                    line += state.Board.Content[col, row].ToString() + " | ";
                 Console.WriteLine(line);
             }
         }

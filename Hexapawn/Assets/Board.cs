@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hexapawn.Assets.Pieces;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -6,11 +7,12 @@ namespace Hexapawn.Assets
 {
     public class Board
     {
-        public string[,] Content { get; set; }
+        public Piece[,] Content { get; set; }
         public int Size { get; set; }
-        public Board()
+        public Board(int size = 3)
         {
-            Size = 3;
+            Size = size;
+            Content = new Piece[Size, Size];
         }
     }
 }
